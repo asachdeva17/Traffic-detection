@@ -2,9 +2,10 @@
 import cv2  
 import numpy as np
 
-VIDEO_FILE = "sample video.mp4"  
+MIN_AREA=300
+VIDEO_FILE = "sampleVideo.mp4"  
 video = cv2.VideoCapture(VIDEO_FILE)
-ROAD_POLYGON = [(0.51, 0.28), (0.60, 0.28), (0.76, 1.0), (0.39, 1.0)]
+ROAD_POLYGON = [(0.51, 0.38), (0.60, 0.38), (0.76, 1.0), (0.39, 1.0)]
 
 if not video.isOpened():
     print("Could not open the video:", VIDEO_FILE)
@@ -27,12 +28,29 @@ while True:
     cv2.fillPoly(road_mask, [points], 255)
     mask = cv2.bitwise_and(mask, road_mask)
 
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    vehicle_count = 0
+    for contour in contours:
+        if cv2.contourArea(contour) > MIN_AREA:
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            vehicle_count += 1
+
+    cv2.putText(frame, "Vehicles: " + str(vehicle_count), (10, 30),
+    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
     cv2.polylines(frame, [points], True, (0, 255, 255), 2)
     cv2.imshow("Original video", frame)
     cv2.imshow("Moving objects (mask)", mask)
 
-    if cv2.waitKey(30) == ord("q"):
+
+
+    key = cv2.waitKey(30)
+    if key == ord("q"):
         break
+    elif key == ord(" "):
+        cv2.waitKey(5000)      # freeze for 5000 ms = 5 seconds, then carry on
 
 video.release()
 cv2.destroyAllWindows()
