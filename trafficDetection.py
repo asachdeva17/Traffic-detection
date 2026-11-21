@@ -70,8 +70,8 @@ while True:
     cv2.fillPoly(road_mask, [points], 255)
     mask = cv2.bitwise_and(mask, road_mask)
     _, mask = cv2.threshold(mask, 200, 255, cv2.THRESH_BINARY)
-    #mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, brush)
-    #mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, brush)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, brush)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, brush)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -81,6 +81,15 @@ while True:
             x, y, w, h = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             vehicle_count += 1
+
+    if frame_number > 30:
+        interval_counts.append(vehicle_count)
+
+    if frame_number % frames_per_interval == 0 and interval_counts:
+        start_time = len(report.intervals) * INTERVAL_SECONDS
+        end_time = frame_number / fps
+        report.add_interval(start_time, end_time, interval_counts)
+        interval_counts = []
 
     cv2.putText(frame, "Vehicles: " + str(vehicle_count), (10, 30),
     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -100,3 +109,4 @@ while True:
 video.release()
 cv2.destroyAllWindows()
 print("Done.")
+print("FPS:", fps, "Frames per interval:", frames_per_interval)
