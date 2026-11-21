@@ -13,6 +13,7 @@ if not video.isOpened():
     raise SystemExit
 
 subtractor = cv2.createBackgroundSubtractorMOG2()
+brush = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
 while True:
     success, frame = video.read() 
