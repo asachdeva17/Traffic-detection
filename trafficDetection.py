@@ -27,6 +27,7 @@ while True:
     road_mask = np.zeros(mask.shape, np.uint8)
     cv2.fillPoly(road_mask, [points], 255)
     mask = cv2.bitwise_and(mask, road_mask)
+    _, mask = cv2.threshold(mask, 200, 255, cv2.THRESH_BINARY)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -50,7 +51,7 @@ while True:
     if key == ord("q"):
         break
     elif key == ord(" "):
-        cv2.waitKey(5000)      # freeze for 5000 ms = 5 seconds, then carry on
+        cv2.waitKey(5000)     
 
 video.release()
 cv2.destroyAllWindows()
