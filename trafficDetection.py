@@ -5,7 +5,7 @@ import numpy as np
 INTERVAL_SECONDS = 10
 LOW_MAX = 3
 MEDIUM_MAX = 7
-MIN_AREA=300
+MIN_AREA=150
 VIDEO_FILE = "sampleVideo.mp4"  
 video = cv2.VideoCapture(VIDEO_FILE)
 ROAD_POLYGON = [(0.51, 0.38), (0.60, 0.38), (0.76, 1.0), (0.39, 1.0)]
@@ -93,6 +93,10 @@ while True:
 
     cv2.putText(frame, "Vehicles: " + str(vehicle_count), (10, 30),
     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+    if report.intervals:
+        cv2.putText(frame, "Level: " + report.intervals[-1].level, (10, 65),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     cv2.polylines(frame, [points], True, (0, 255, 255), 2)
     cv2.imshow("Original video", frame)
