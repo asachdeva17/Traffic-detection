@@ -2,10 +2,42 @@
 import cv2  
 import numpy as np
 
+INTERVAL_SECONDS = 10
+LOW_MAX = 3
+MEDIUM_MAX = 7
 MIN_AREA=300
 VIDEO_FILE = "sampleVideo.mp4"  
 video = cv2.VideoCapture(VIDEO_FILE)
 ROAD_POLYGON = [(0.51, 0.38), (0.60, 0.38), (0.76, 1.0), (0.39, 1.0)]
+
+def congestion_level(average):
+    if average <= LOW_MAX:
+        return "Low"
+    elif average <= MEDIUM_MAX:
+        return "Medium"
+    return "High"
+
+class IntervalResult:
+    def __init__(self, start_time, end_time, average_count):
+        self.start_time = start_time
+        self.end_time = end_time
+        self.average_count = average_count
+        self.level = congestion_level(average_count)
+
+
+class TrafficReport:
+    def __init__(self, video_path, interval_seconds):
+        self.video_path = video_path
+        self.interval_seconds = interval_seconds
+        self.intervals = []
+
+    def add_interval(self, start_time, end_time, counts):
+        average = sum(counts) / len(counts)
+        self.intervals.append(IntervalResult(start_time, end_time, average))
+
+    def overall_level(self):
+        averages = [r.average_count for r in self.intervals]
+        return congestion_level(sum(averages) / len(averages))
 
 if not video.isOpened():
     print("Could not open the video:", VIDEO_FILE)
@@ -14,11 +46,20 @@ if not video.isOpened():
 
 subtractor = cv2.createBackgroundSubtractorMOG2()
 brush = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+frame_number = 0
+fps = video.get(cv2.CAP_PROP_FPS)
+if fps <= 0:
+    fps = 30
+frames_per_interval = int(fps * INTERVAL_SECONDS)
+report = TrafficReport(VIDEO_FILE, INTERVAL_SECONDS)
+interval_counts = []
 
 while True:
     success, frame = video.read() 
     if not success:  
             break
+    frame_number += 1
+    frame = cv2.resize(frame, (960, 540))
     frame = cv2.resize(frame, (960, 540))
     height, width = frame.shape[:2]
     points = np.array([(int(x * width), int(y * height)) for x, y in ROAD_POLYGON], np.int32)
@@ -29,6 +70,8 @@ while True:
     cv2.fillPoly(road_mask, [points], 255)
     mask = cv2.bitwise_and(mask, road_mask)
     _, mask = cv2.threshold(mask, 200, 255, cv2.THRESH_BINARY)
+    #mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, brush)
+    #mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, brush)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
