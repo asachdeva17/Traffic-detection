@@ -113,4 +113,14 @@ while True:
 video.release()
 cv2.destroyAllWindows()
 print("Done.")
+if interval_counts:
+    start_time = len(report.intervals) * INTERVAL_SECONDS
+    report.add_interval(start_time, frame_number / fps, interval_counts)
+
+for r in report.intervals:
+    print(f"{r.start_time:.0f}s to {r.end_time:.0f}s: average {r.average_count:.1f}, {r.level}")
+
+if report.intervals:
+    print("Overall:", report.overall_level())
+    
 print("FPS:", fps, "Frames per interval:", frames_per_interval)
