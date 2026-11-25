@@ -1,4 +1,5 @@
 from trafficdetection import video_count
+import os
 
 def main_menu():
     print("==========================================")
@@ -12,6 +13,13 @@ def show_options():
     print("1. Analyse a video")
     print("2. Exit")
 
+def path_input():
+    while True:
+        path = input("Enter the path of the video file: ")
+        if os.path.isfile(path):
+            return path
+        print("File not found. Check the path and try again.")
+
 def main():
     main_menu()
     while True:
@@ -19,7 +27,8 @@ def main():
         choice = input("Choose an option (1 or 2): ").strip()
 
         if choice == "1":
-            print("Analysis loop test.")
+            path = path_input()
+            print("Video selected:", path)
         elif choice == "2":
             print("Thank you. Have a nice day!")
             break
